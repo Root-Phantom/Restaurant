@@ -10,8 +10,11 @@ public class OrderMaster
     [Column(TypeName = "nvarchar(75)")] public string OrderNumber { get; set; }
 
     public int CustomerId { get; set; }
+    public Customer Customer { get; set; }
 
     [Column(TypeName = "nvarchar(75)")] public string PaymentMethod { get; set; }
 
     public Decimal TotalPrice { get; set; }
+
+    public List<OrderDetail> OrderDetails { get; set; }
 }
