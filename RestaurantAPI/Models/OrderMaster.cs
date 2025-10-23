@@ -14,6 +14,7 @@ public class OrderMaster
 
     [Column(TypeName = "nvarchar(75)")] public string PaymentMethod { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
     public Decimal TotalPrice { get; set; }
 
     public List<OrderDetail> OrderDetails { get; set; }

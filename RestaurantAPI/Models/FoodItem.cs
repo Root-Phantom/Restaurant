@@ -8,6 +8,7 @@ public class FoodItem
     [Key] public int FoodItemId { get; set; }
 
     [Column(TypeName = "nvarchar(100)")] public string FoodItemName { get; set; }
-
+    
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
 }
