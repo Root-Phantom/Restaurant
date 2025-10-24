@@ -136,7 +136,7 @@ export default function OrderForm() {
                         <tr>
                             <th className="py-2 px-3">Food</th>
                             <th className="py-2 px-3">Price</th>
-                            <th className="py-2 px-3">Qty</th>
+                            <th className="py-2 px-3">Quantity</th>
                             <th className="py-2 px-3">Line Total</th>
                             <th className="py-2 px-3"></th>
                         </tr>

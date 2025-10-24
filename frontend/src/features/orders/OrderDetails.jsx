@@ -46,7 +46,7 @@ export default function OrderDetails() {
                         <tr>
                             <th className="py-2 pr-3">Food</th>
                             <th className="py-2 pr-3">Price</th>
-                            <th className="py-2 pr-3">Qty</th>
+                            <th className="py-2 pr-3">Quantity</th>
                             <th className="py-2 pr-3">Line Total</th>
                         </tr>
                         </thead>
