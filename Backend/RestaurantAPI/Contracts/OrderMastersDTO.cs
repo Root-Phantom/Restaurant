@@ -1,9 +1,11 @@
 namespace RestaurantAPI.Contracts;
 
-public record OrderDetailCreateDto(int FoodItemId, int Quantity);
+public record OrderDetailCreateDto(
+    int FoodItemId,
+    int Quantity
+);
 
 public record OrderCreateDto(
-    string OrderNumber,
     int CustomerId,
     string PaymentMethod,
     List<OrderDetailCreateDto> Items

@@ -7,8 +7,8 @@ import OrderDetails from './features/orders/OrderDetails.jsx';
 export default function App() {
     return (
         <div style={{padding: 16}}>
-            <nav style={{marginBottom: 12}}>
-                <Link to="/orders">Orders</Link> {' | '}
+            <nav style={{marginBottom: 12, display: 'flex', gap: 12}}>
+                <Link to="/orders">Orders</Link>
                 <Link to="/orders/new">New Order</Link>
             </nav>
             <Routes>

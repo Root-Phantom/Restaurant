@@ -1,22 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { OrdersApi } from '../../api/order.js';
-import { Link } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {OrdersApi} from '../../api/orders.js';
+import {Link} from 'react-router-dom';
 
 export default function OrderList() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let alive = true;
         OrdersApi.list()
-            .then(r => setData(r.data))
-            .finally(() => setLoading(false));
+            .then(r => {
+                if (alive) setData(Array.isArray(r.data) ? r.data : []);
+            })
+            .catch(err => {
+                console.error(err);
+                if (alive) setData([]);
+            })
+            .finally(() => {
+                if (alive) setLoading(false);
+            });
+        return () => {
+            alive = false;
+        };
     }, []);
 
     const onDelete = async (id) => {
-        if (window.confirm('Delete this order?')) {
-            await OrdersApi.remove(id);
-            setData(prev => prev.filter(o => o.orderMasterId !== id));
-        }
+        if (!window.confirm('Delete this order?')) return;
+        await OrdersApi.remove(id);
+        setData(prev => prev.filter(o => o.orderMasterId !== id));
     };
 
     if (loading) return <div>Loading...</div>;
@@ -25,10 +36,15 @@ export default function OrderList() {
         <div>
             <h2>Orders</h2>
             <Link to="/orders/new">New Order</Link>
-            <table border="1" cellPadding="6" cellSpacing="0">
+            <table border="1" cellPadding="6" cellSpacing="0" width="100%">
                 <thead>
                 <tr>
-                    <th>#</th><th>Order No</th><th>Customer</th><th>Method</th><th>Total</th><th>Actions</th>
+                    <th>#</th>
+                    <th>Order No</th>
+                    <th>Customer</th>
+                    <th>Method</th>
+                    <th>Total</th>
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>

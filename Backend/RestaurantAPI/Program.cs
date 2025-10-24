@@ -1,7 +1,11 @@
 using RestaurantAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using RestaurantAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddScoped<IOrderNumberGenerator, OrderNumberGenerator>();
 
 // Add DbContext for SQL Server
 builder.Services.AddDbContext<RestaurantDbContext>(options =>

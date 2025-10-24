@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestaurantAPI.Contracts; // فقط از DTOهای Contracts استفاده کن
 using RestaurantAPI.Models;
 
 namespace RestaurantAPI.Controllers;
@@ -10,19 +11,13 @@ public class OrderMastersController : ControllerBase
 {
     private readonly RestaurantDbContext _context;
 
+
     public OrderMastersController(RestaurantDbContext context)
     {
         _context = context;
     }
 
-    // DTOs
-    public record OrderDetailCreateDto(int FoodItemId, int Quantity);
-    public record OrderCreateDto(string OrderNumber, int CustomerId, string PaymentMethod, List<OrderDetailCreateDto> Items);
-    public record OrderUpdateDto(string PaymentMethod, List<OrderDetailCreateDto> Items);
-    public record OrderDetailReadDto(int OrderDetailId, int FoodItemId, string FoodItemName, decimal FoodItemPrice, int Quantity, decimal LineTotal);
-    public record OrderReadDto(long OrderMasterId, string OrderNumber, int CustomerId, string CustomerName, string PaymentMethod, decimal TotalPrice, List<OrderDetailReadDto> Items);
-
-    // GET: api/OrderMasters
+// GET: api/OrderMasters
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetOrderMasters()
     {
@@ -51,7 +46,7 @@ public class OrderMastersController : ControllerBase
         return Ok(orders);
     }
 
-    // GET: api/OrderMasters/5
+// GET: api/OrderMasters/{id}
     [HttpGet("{id:long}")]
     public async Task<ActionResult<OrderReadDto>> GetOrderMaster(long id)
     {
@@ -83,14 +78,15 @@ public class OrderMastersController : ControllerBase
         return Ok(dto);
     }
 
-    // POST: api/OrderMasters
+// POST: api/OrderMasters
     [HttpPost]
     public async Task<ActionResult<OrderReadDto>> PostOrderMaster(OrderCreateDto dto, CancellationToken ct)
     {
         if (dto.Items is null || dto.Items.Count == 0)
             return BadRequest("At least one order item is required.");
 
-        var customerExists = await _context.Customers.AsNoTracking()
+        var customerExists = await _context.Customers
+            .AsNoTracking()
             .AnyAsync(c => c.CustomerId == dto.CustomerId, ct);
         if (!customerExists) return BadRequest("Customer not found.");
 
@@ -102,7 +98,6 @@ public class OrderMastersController : ControllerBase
 
         var order = new OrderMaster
         {
-            OrderNumber = dto.OrderNumber,
             CustomerId = dto.CustomerId,
             PaymentMethod = dto.PaymentMethod,
             OrderDetails = new List<OrderDetail>()
@@ -116,19 +111,48 @@ public class OrderMastersController : ControllerBase
             {
                 FoodItemId = fi.FoodItemId,
                 Quantity = item.Quantity,
-                FoodItemPrice = fi.Price
+                FoodItemPrice = fi.Price // snapshot server-side
             });
         }
+
+        var today = DateTime.UtcNow.ToString("yyyyMMdd");
+        var countToday = await _context.OrderMasters
+            .AsNoTracking()
+            .CountAsync(o => o.OrderNumber.StartsWith($"ORD-{today}"), ct);
+        order.OrderNumber = $"ORD-{today}-{countToday + 1:0000}";
 
         order.TotalPrice = order.OrderDetails.Sum(d => d.FoodItemPrice * d.Quantity);
 
         _context.OrderMasters.Add(order);
         await _context.SaveChangesAsync(ct);
 
-        return await GetOrderMaster(order.OrderMasterId);
+        var created = await _context.OrderMasters
+            .AsNoTracking()
+            .Include(x => x.Customer)
+            .Include(x => x.OrderDetails).ThenInclude(d => d.FoodItem)
+            .FirstAsync(x => x.OrderMasterId == order.OrderMasterId, ct);
+
+        var readDto = new OrderReadDto(
+            created.OrderMasterId,
+            created.OrderNumber,
+            created.CustomerId,
+            created.Customer.CustomerName,
+            created.PaymentMethod,
+            created.TotalPrice,
+            created.OrderDetails.Select(d => new OrderDetailReadDto(
+                d.OrderDetailId,
+                d.FoodItemId,
+                d.FoodItem.FoodItemName,
+                d.FoodItemPrice,
+                d.Quantity,
+                d.FoodItemPrice * d.Quantity
+            )).ToList()
+        );
+
+        return CreatedAtAction(nameof(GetOrderMaster), new { id = created.OrderMasterId }, readDto);
     }
 
-    // PUT: api/OrderMasters/5
+// PUT: api/OrderMasters/{id}
     [HttpPut("{id:long}")]
     public async Task<IActionResult> PutOrderMaster(long id, OrderUpdateDto dto, CancellationToken ct)
     {
@@ -149,7 +173,6 @@ public class OrderMastersController : ControllerBase
         var fiMap = await _context.FoodItems
             .Where(f => ids.Contains(f.FoodItemId))
             .ToDictionaryAsync(f => f.FoodItemId, ct);
-
         if (ids.Count != fiMap.Count) return BadRequest("Some food items do not exist.");
 
         foreach (var item in dto.Items)
@@ -170,7 +193,7 @@ public class OrderMastersController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/OrderMasters/5
+// DELETE: api/OrderMasters/{id}
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> DeleteOrderMaster(long id, CancellationToken ct)
     {
