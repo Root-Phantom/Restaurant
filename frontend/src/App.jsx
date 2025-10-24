@@ -1,24 +1,21 @@
 import React from 'react';
-import {Routes, Route, Navigate, Link} from 'react-router-dom';
-import OrderList from './features/orders/OrderList.jsx';
-import OrderForm from './features/orders/OrderForm.jsx';
-import OrderDetails from './features/orders/OrderDetails.jsx';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import AppShell from './components/layout/AppShell';
+import OrderList from './features/orders/OrderList';
+import OrderForm from './features/orders/OrderForm';
+import OrderDetails from './features/orders/OrderDetails';
 
 export default function App() {
     return (
-        <div style={{padding: 16}}>
-            <nav style={{marginBottom: 12, display: 'flex', gap: 12}}>
-                <Link to="/orders">Orders</Link>
-                <Link to="/orders/new">New Order</Link>
-            </nav>
+        <AppShell>
             <Routes>
-                <Route path="/" element={<Navigate to="/orders" replace/>}/>
-                <Route path="/orders" element={<OrderList/>}/>
-                <Route path="/orders/new" element={<OrderForm/>}/>
-                <Route path="/orders/:id" element={<OrderDetails/>}/>
-                <Route path="/orders/:id/edit" element={<OrderForm/>}/>
-                <Route path="*" element={<div>Not Found</div>}/>
+                <Route path="/" element={<Navigate to="/orders" replace />} />
+                <Route path="/orders" element={<OrderList />} />
+                <Route path="/orders/new" element={<OrderForm />} />
+                <Route path="/orders/:id" element={<OrderDetails />} />
+                <Route path="/orders/:id/edit" element={<OrderForm />} />
+                <Route path="*" element={<div>Not Found</div>} />
             </Routes>
-        </div>
+        </AppShell>
     );
 }

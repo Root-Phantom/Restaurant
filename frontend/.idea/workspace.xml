@@ -5,20 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="52a8811f-f263-4b03-8ebf-191b58681448" name="Changes" comment="frontend finished without any style!">
-      <change afterPath="$PROJECT_DIR$/../Backend/RestaurantAPI/Services/OrderNumberGenerator.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/api/customers.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/api/food.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/RestaurantAPI/Controllers/Contracts.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/RestaurantAPI/Contracts/OrderMastersDTO.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/RestaurantAPI/Controllers/OrderController.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/RestaurantAPI/Controllers/OrderMastersController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/RestaurantAPI/Controllers/OrderMastersController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/RestaurantAPI/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/RestaurantAPI/Program.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/AppShell.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/BackButton.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/Badge.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/Button.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/Card.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/Select.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/http.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/http.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/order.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/orders.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/api/food.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/foods.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/features/orders/OrderDetails.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/orders/OrderDetails.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/features/orders/OrderForm.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/orders/OrderForm.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/features/orders/OrderList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/orders/OrderList.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,8 +31,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="TypeScript File" />
-        <option value="JSX File" />
         <option value="JavaScript File" />
+        <option value="JSX File" />
       </list>
     </option>
   </component>
@@ -112,7 +114,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1761270576592</updated>
-      <workItem from="1761270577671" duration="10417000" />
+      <workItem from="1761270577671" duration="20023000" />
     </task>
     <task id="LOCAL-00001" summary="frontend finished without any style!">
       <option name="closed" value="true" />
