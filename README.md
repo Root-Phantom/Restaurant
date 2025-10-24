@@ -1,29 +1,57 @@
-Restaurant — Backend/Frontend README (Concise)
+# 🍽️ Restaurant — Backend & Frontend (Concise README)
 
-Database: Microsoft SQL Server (RestaurantDb)
+A clean, production-friendly stack for restaurant order management with a dark, modern UI.
 
-Backend: ASP.NET Core Web API (.NET 8), Entity Framework Core, Swagger
+---
 
-Key Packages (API): EF Core, EF Core SqlServer, EF Tools, Swagger
+## 🗄️ Database
+- Microsoft SQL Server — Database: `RestaurantDb`
 
-Frontend: React (CRA), Axios, Tailwind CSS, Radix Select, Lucide Icons
+---
 
-Dev Proxy: Frontend → Backend via “/api”
+## ⚙️ Backend
+- ASP.NET Core Web API (.NET 8)
+- Entity Framework Core (SqlServer)
+- Swagger (API docs)
 
-Core Features:
+**Key Packages**
+- Microsoft.EntityFrameworkCore
+- Microsoft.EntityFrameworkCore.SqlServer
+- Microsoft.EntityFrameworkCore.Tools
+- Swashbuckle.AspNetCore
 
-Orders CRUD under /api/ordermasters
+**API Highlights**
+- Base path: `/api/ordermasters`
+- Server‑generated OrderNumber: `ORD‑YYYYMMDD‑####`
+- Server‑side totals (line total, grand total)
+- Snapshot pricing at order time (FoodItem → OrderDetail)
+- DTOs centralized in `RestaurantAPI.Contracts`
 
-Server‑generated OrderNumber (ORD‑YYYYMMDD‑####)
+---
 
-Server‑side totals (line and grand total)
+## 💻 Frontend
+- React (CRA), Axios
+- Tailwind CSS (dark theme)
+- Radix Select (custom dropdowns)
+- Lucide Icons
 
-Snapshot pricing per FoodItem at order time
+**Dev Proxy**
+- Frontend → `/api` → Backend (no .env needed in development)
 
-Dark UI with searchable orders, New/Edit forms, Back/Action buttons
+**UI Features**
+- Orders list with search
+- New/Edit order forms with live totals
+- Clear Back/Action buttons
+- Themed dropdowns (fully dark, portal-based)
 
-Projects/Namespaces:
+---
 
-API: RestaurantAPI
+## 🧭 Projects / Namespaces
+- API: `RestaurantAPI`
+- Contracts (DTOs): `RestaurantAPI.Contracts`
 
-Contracts: RestaurantAPI.Contracts (DTOs)
+---
+
+## 🚀 Run
+- Backend: `dotnet run`
+- Frontend: `npm start`
