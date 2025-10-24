@@ -49,9 +49,3 @@ A clean, production-friendly stack for restaurant order management with a dark, 
 ## 🧭 Projects / Namespaces
 - API: `RestaurantAPI`
 - Contracts (DTOs): `RestaurantAPI.Contracts`
-
----
-
-## 🚀 Run
-- Backend: `dotnet run`
-- Frontend: `npm start`
