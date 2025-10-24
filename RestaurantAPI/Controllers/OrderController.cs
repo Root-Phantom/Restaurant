@@ -1,107 +1,212 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantAPI.Models;
+using RestaurantAPI.Contracts;
 
-namespace RestaurantAPI.Controllers
+namespace RestaurantAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class OrderController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class OrderController : ControllerBase
+    private readonly RestaurantDbContext _context;
+
+    public OrderController(RestaurantDbContext context)
     {
-        private readonly RestaurantDbContext _context;
+        _context = context;
+    }
 
-        public OrderController(RestaurantDbContext context)
+    // GET: api/Order
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetOrders()
+    {
+        var orders = await _context.OrderMasters
+            .AsNoTracking()
+            .Include(o => o.Customer)
+            .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.FoodItem)
+            .Select(o => new OrderReadDto(
+                o.OrderMasterId,
+                o.OrderNumber,
+                o.CustomerId,
+                o.Customer.CustomerName,
+                o.PaymentMethod,
+                o.TotalPrice,
+                o.OrderDetails.Select(d => new OrderDetailReadDto(
+                    d.OrderDetailId,
+                    d.FoodItemId,
+                    d.FoodItem.FoodItemName,
+                    d.FoodItemPrice,
+                    d.Quantity,
+                    d.FoodItemPrice * d.Quantity
+                )).ToList()
+            ))
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
+    // GET: api/Order/5
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<OrderReadDto>> GetOrder(long id)
+    {
+        var o = await _context.OrderMasters
+            .AsNoTracking()
+            .Include(x => x.Customer)
+            .Include(x => x.OrderDetails)
+                .ThenInclude(d => d.FoodItem)
+            .FirstOrDefaultAsync(x => x.OrderMasterId == id);
+
+        if (o is null) return NotFound();
+
+        var dto = new OrderReadDto(
+            o.OrderMasterId,
+            o.OrderNumber,
+            o.CustomerId,
+            o.Customer.CustomerName,
+            o.PaymentMethod,
+            o.TotalPrice,
+            o.OrderDetails.Select(d => new OrderDetailReadDto(
+                d.OrderDetailId,
+                d.FoodItemId,
+                d.FoodItem.FoodItemName,
+                d.FoodItemPrice,
+                d.Quantity,
+                d.FoodItemPrice * d.Quantity
+            )).ToList()
+        );
+
+        return Ok(dto);
+    }
+
+    // POST: api/Order
+    [HttpPost]
+    public async Task<ActionResult<OrderReadDto>> Create(OrderCreateDto dto, CancellationToken ct)
+    {
+        if (dto.Items == null || dto.Items.Count == 0)
+            return BadRequest("At least one order item is required.");
+
+        var customerExists = await _context.Customers
+            .AsNoTracking()
+            .AnyAsync(c => c.CustomerId == dto.CustomerId, ct);
+        if (!customerExists) return BadRequest("Customer not found.");
+
+        var foodItemIds = dto.Items.Select(i => i.FoodItemId).Distinct().ToList();
+        var foodItems = await _context.FoodItems
+            .Where(f => foodItemIds.Contains(f.FoodItemId))
+            .ToDictionaryAsync(f => f.FoodItemId, ct);
+
+        if (foodItemIds.Count != foodItems.Count)
+            return BadRequest("Some food items do not exist.");
+
+        var order = new OrderMaster
         {
-            _context = context;
-        }
+            OrderNumber = dto.OrderNumber,
+            CustomerId = dto.CustomerId,
+            PaymentMethod = dto.PaymentMethod,
+            OrderDetails = new List<OrderDetail>()
+        };
 
-        // GET: api/Order
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderMaster>>> GetOrderMasters()
+        foreach (var item in dto.Items)
         {
-            return await _context.OrderMasters.ToListAsync();
-        }
+            if (item.Quantity <= 0) return BadRequest("Quantity must be positive.");
 
-        // GET: api/Order/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<OrderMaster>> GetOrderMaster(long id)
-        {
-            var orderMaster = await _context.OrderMasters.FindAsync(id);
-
-            if (orderMaster == null)
+            var fi = foodItems[item.FoodItemId];
+            order.OrderDetails.Add(new OrderDetail
             {
-                return NotFound();
-            }
-
-            return orderMaster;
+                FoodItemId = fi.FoodItemId,
+                Quantity = item.Quantity,
+                FoodItemPrice = fi.Price
+            });
         }
 
-        // PUT: api/Order/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutOrderMaster(long id, OrderMaster orderMaster)
+        order.TotalPrice = order.OrderDetails.Sum(d => d.FoodItemPrice * d.Quantity);
+
+        _context.OrderMasters.Add(order);
+        await _context.SaveChangesAsync(ct);
+
+        var created = await _context.OrderMasters
+            .AsNoTracking()
+            .Include(x => x.Customer)
+            .Include(x => x.OrderDetails).ThenInclude(d => d.FoodItem)
+            .FirstAsync(x => x.OrderMasterId == order.OrderMasterId, ct);
+
+        var readDto = new OrderReadDto(
+            created.OrderMasterId,
+            created.OrderNumber,
+            created.CustomerId,
+            created.Customer.CustomerName,
+            created.PaymentMethod,
+            created.TotalPrice,
+            created.OrderDetails.Select(d => new OrderDetailReadDto(
+                d.OrderDetailId,
+                d.FoodItemId,
+                d.FoodItem.FoodItemName,
+                d.FoodItemPrice,
+                d.Quantity,
+                d.FoodItemPrice * d.Quantity
+            )).ToList()
+        );
+
+        return CreatedAtAction(nameof(GetOrder), new { id = created.OrderMasterId }, readDto);
+    }
+
+    // PUT: api/Order/5
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> Update(long id, OrderUpdateDto dto, CancellationToken ct)
+    {
+        var order = await _context.OrderMasters
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.OrderMasterId == id, ct);
+
+        if (order is null) return NotFound();
+
+        order.PaymentMethod = dto.PaymentMethod;
+
+        order.OrderDetails.Clear();
+
+        if (dto.Items is null || dto.Items.Count == 0)
+            return BadRequest("At least one order item is required.");
+
+        var ids = dto.Items.Select(i => i.FoodItemId).Distinct().ToList();
+        var fiMap = await _context.FoodItems
+            .Where(f => ids.Contains(f.FoodItemId))
+            .ToDictionaryAsync(f => f.FoodItemId, ct);
+
+        if (ids.Count != fiMap.Count)
+            return BadRequest("Some food items do not exist.");
+
+        foreach (var item in dto.Items)
         {
-            if (id != orderMaster.OrderMasterId)
+            if (item.Quantity <= 0) return BadRequest("Quantity must be positive.");
+            var fi = fiMap[item.FoodItemId];
+            order.OrderDetails.Add(new OrderDetail
             {
-                return BadRequest();
-            }
-
-            _context.Entry(orderMaster).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderMasterExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+                FoodItemId = fi.FoodItemId,
+                Quantity = item.Quantity,
+                FoodItemPrice = fi.Price
+            });
         }
 
-        // POST: api/Order
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<OrderMaster>> PostOrderMaster(OrderMaster orderMaster)
-        {
-            _context.OrderMasters.Add(orderMaster);
-            await _context.SaveChangesAsync();
+        order.TotalPrice = order.OrderDetails.Sum(d => d.FoodItemPrice * d.Quantity);
 
-            return CreatedAtAction("GetOrderMaster", new { id = orderMaster.OrderMasterId }, orderMaster);
-        }
+        await _context.SaveChangesAsync(ct);
+        return NoContent();
+    }
 
-        // DELETE: api/Order/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrderMaster(long id)
-        {
-            var orderMaster = await _context.OrderMasters.FindAsync(id);
-            if (orderMaster == null)
-            {
-                return NotFound();
-            }
+    // DELETE: api/Order/5
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id, CancellationToken ct)
+    {
+        var order = await _context.OrderMasters
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.OrderMasterId == id, ct);
 
-            _context.OrderMasters.Remove(orderMaster);
-            await _context.SaveChangesAsync();
+        if (order is null) return NotFound();
 
-            return NoContent();
-        }
+        _context.OrderMasters.Remove(order);
+        await _context.SaveChangesAsync(ct);
 
-        private bool OrderMasterExists(long id)
-        {
-            return _context.OrderMasters.Any(e => e.OrderMasterId == id);
-        }
+        return NoContent();
     }
 }
